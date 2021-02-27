@@ -1,0 +1,11 @@
+directx-headers (1.0.2-1) unstable; urgency=medium
+
+  * control: Add an uploader, bump policy to 4.5.1.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Sat, 27 Feb 2021 21:58:53 +0200
+
+directx-headers (1.0.1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #980789)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 22 Jan 2021 10:15:40 +0200
