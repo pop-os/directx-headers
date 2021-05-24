@@ -5,13 +5,13 @@ Source: https://github.com/microsoft/DirectX-Headers
 
 Files: *
 Copyright: 2021 Microsoft Corporation
-License: MIT
+License: Expat
 
 Files: debian/*
 Copyright: 2021 Timo Aaltonen <tjaalton@debian.org>
-License: MIT
+License: Expat
 
-License: MIT
+License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights

@@ -4,8 +4,8 @@
  * Licensed under the MIT license
  *
  *-------------------------------------------------------------------------------------*/
-import "oaidl.idl";
-import "ocidl.idl";
+import "OAIdl.idl";
+import "OCIdl.idl";
 
 import "dxgicommon.idl";
 import "dxgiformat.idl";
@@ -934,6 +934,7 @@ typedef enum D3D12_FEATURE
     D3D12_FEATURE_D3D12_OPTIONS8                        = 36,
     D3D12_FEATURE_D3D12_OPTIONS9                        = 37,
     D3D12_FEATURE_D3D12_OPTIONS10                       = 39,
+    D3D12_FEATURE_D3D12_OPTIONS11                       = 40,
 } D3D12_FEATURE;
 
 typedef enum D3D12_SHADER_MIN_PRECISION_SUPPORT
@@ -1195,6 +1196,8 @@ typedef enum D3D12_SHADER_CACHE_SUPPORT_FLAGS
     D3D12_SHADER_CACHE_SUPPORT_AUTOMATIC_INPROC_CACHE   = 0x4,
     D3D12_SHADER_CACHE_SUPPORT_AUTOMATIC_DISK_CACHE     = 0x8,
     D3D12_SHADER_CACHE_SUPPORT_DRIVER_MANAGED_CACHE     = 0x10,
+    D3D12_SHADER_CACHE_SUPPORT_SHADER_CONTROL_CLEAR     = 0x20,
+    D3D12_SHADER_CACHE_SUPPORT_SHADER_SESSION_DELETE    = 0x40
 } D3D12_SHADER_CACHE_SUPPORT_FLAGS;
 cpp_quote( "DEFINE_ENUM_FLAG_OPERATORS( D3D12_SHADER_CACHE_SUPPORT_FLAGS );" )
 
@@ -1385,6 +1388,12 @@ typedef struct D3D12_FEATURE_DATA_D3D12_OPTIONS10
     [annotation("_Out_")] BOOL VariableRateShadingSumCombinerSupported;
     [annotation("_Out_")] BOOL MeshShaderPerPrimitiveShadingRateSupported;
 } D3D12_FEATURE_DATA_D3D12_OPTIONS10;
+
+// D3D12_FEATURE_D3D12_OPTIONS11
+typedef struct D3D12_FEATURE_DATA_D3D12_OPTIONS11
+{
+    [annotation("_Out_")] BOOL AtomicInt64OnDescriptorHeapResourceSupported;
+} D3D12_FEATURE_DATA_D3D12_OPTIONS11;
 
 
 typedef struct D3D12_RESOURCE_ALLOCATION_INFO
