@@ -31,6 +31,22 @@ typedef float FLOAT;
 typedef double DOUBLE;
 typedef unsigned char BYTE;
 typedef int HWND;
+typedef int PALETTEENTRY;
+typedef int HDC;
+typedef uint16_t WORD;
+typedef void* PVOID;
+typedef char BOOLEAN;
+typedef uint64_t ULONGLONG;
+typedef uint16_t USHORT, *PUSHORT;
+typedef int64_t LONGLONG, *PLONGLONG;
+typedef int64_t LONG_PTR, *PLONG_PTR;
+typedef int64_t LONG64, *PLONG64;
+typedef uint64_t ULONG64, *PULONG64;
+typedef wchar_t WCHAR, *PWSTR;
+typedef uint8_t UCHAR, *PUCHAR;
+typedef uint64_t ULONG_PTR, *PULONG_PTR;
+typedef uint64_t UINT_PTR, *PUINT_PTR;
+typedef int64_t INT_PTR, *PINT_PTR;
 
 // Note: WCHAR is not the same between Windows and Linux, to enable
 // string manipulation APIs to work with resulting strings.
@@ -58,7 +74,33 @@ typedef const wchar_t *LPCWSTR, *PCWSTR;
 #define DECLSPEC_UUID(x)
 #define DECLSPEC_NOVTABLE
 #define DECLSPEC_SELECTANY
+#ifdef __cplusplus
 #define EXTERN_C extern "C"
+#else
+#define EXTERN_C
+#endif
+#define APIENTRY
+#define OUT
+#define IN
+#define CONST const
+#define MAX_PATH 260
+#define GENERIC_ALL 0x10000000L
+#define C_ASSERT(expr) static_assert((expr))
+#define _countof(a) (sizeof(a) / sizeof(*(a)))
+
+typedef struct tagRECTL
+{
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+} RECTL;
+
+typedef struct tagPOINT
+{
+    int x;
+    int y;
+} POINT;
 
 typedef struct _GUID {
     uint32_t Data1;
@@ -103,6 +145,17 @@ __inline int InlineIsEqualGUID(REFGUID rguid1, REFGUID rguid2)
         ((uint32_t *)&rguid1)[2] == ((uint32_t *)&rguid2)[2] &&
         ((uint32_t *)&rguid1)[3] == ((uint32_t *)&rguid2)[3]);
 }
+
+inline bool operator==(REFGUID guidOne, REFGUID guidOther)
+{
+    return !!InlineIsEqualGUID(guidOne, guidOther);
+}
+
+inline bool operator!=(REFGUID guidOne, REFGUID guidOther)
+{
+    return !(guidOne == guidOther);
+}
+
 #else
 #define REFGUID const GUID *
 #define REFIID const IID *
@@ -187,35 +240,38 @@ typedef LONG HRESULT;
 #define FAILED(hr)     (((HRESULT)(hr)) < 0)
 #define S_OK           ((HRESULT)0L)
 #define S_FALSE        ((HRESULT)1L)
-#define E_NOTIMPL      ((HRESULT)0x80000001L)
-#define E_OUTOFMEMORY  ((HRESULT)0x80000002L)
-#define E_INVALIDARG   ((HRESULT)0x80000003L)
-#define E_NOINTERFACE  ((HRESULT)0x80000004L)
-#define E_POINTER      ((HRESULT)0x80000005L)
-#define E_HANDLE       ((HRESULT)0x80000006L)
-#define E_ABORT        ((HRESULT)0x80000007L)
-#define E_FAIL         ((HRESULT)0x80000008L)
-#define E_ACCESSDENIED ((HRESULT)0x80000009L)
+#define E_NOTIMPL      ((HRESULT)0x80004001L)
+#define E_OUTOFMEMORY  ((HRESULT)0x8007000EL)
+#define E_INVALIDARG   ((HRESULT)0x80070057L)
+#define E_NOINTERFACE  ((HRESULT)0x80004002L)
+#define E_POINTER      ((HRESULT)0x80004003L)
+#define E_HANDLE       ((HRESULT)0x80070006L)
+#define E_ABORT        ((HRESULT)0x80004004L)
+#define E_FAIL         ((HRESULT)0x80004005L)
+#define E_ACCESSDENIED ((HRESULT)0x80070005L)
 #define E_UNEXPECTED   ((HRESULT)0x8000FFFFL)
-#define DXGI_ERROR_DEVICE_HUNG ((HRESULT)0x887A0006L)
+#define DXGI_ERROR_INVALID_CALL ((HRESULT)0x887A0001L)
+#define DXGI_ERROR_NOT_FOUND ((HRESULT)0x887A0002L)
+#define DXGI_ERROR_MORE_DATA ((HRESULT)0x887A0003L)
+#define DXGI_ERROR_UNSUPPORTED ((HRESULT)0x887A0004L)
 #define DXGI_ERROR_DEVICE_REMOVED ((HRESULT)0x887A0005L)
+#define DXGI_ERROR_DEVICE_HUNG ((HRESULT)0x887A0006L)
 #define DXGI_ERROR_DEVICE_RESET ((HRESULT)0x887A0007L)
 #define DXGI_ERROR_DRIVER_INTERNAL_ERROR ((HRESULT)0x887A0020L)
-#define DXGI_ERROR_INVALID_CALL ((HRESULT)0x887A0001L)
 
-typedef struct _LUID 
+typedef struct _LUID
 {
     ULONG LowPart;
     LONG HighPart;
 } LUID;
 
-struct RECT
+typedef struct _RECT
 {
     int left;
     int top;
     int right;
     int bottom;
-};
+} RECT;
 
 typedef union _LARGE_INTEGER {
   struct {
@@ -224,6 +280,7 @@ typedef union _LARGE_INTEGER {
   } u;
   int64_t QuadPart;
 } LARGE_INTEGER;
+typedef LARGE_INTEGER *PLARGE_INTEGER;
 
 typedef union _ULARGE_INTEGER {
   struct {
@@ -232,6 +289,13 @@ typedef union _ULARGE_INTEGER {
   } u;
   uint64_t QuadPart;
 } ULARGE_INTEGER;
+typedef ULARGE_INTEGER *PULARGE_INTEGER;
+
+#define DECLARE_HANDLE(name)                                                   \
+  struct name##__ {                                                            \
+    int unused;                                                                \
+  };                                                                           \
+  typedef struct name##__ *name
 
 struct SECURITY_ATTRIBUTES;
 struct STATSTG;
@@ -302,7 +366,7 @@ interface DECLSPEC_UUID("00000000-0000-0000-C000-000000000046") DECLSPEC_NOVTABL
    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) = 0;
    virtual ULONG STDMETHODCALLTYPE AddRef() = 0;
    virtual ULONG STDMETHODCALLTYPE Release() = 0;
-   
+
    template <class Q> HRESULT STDMETHODCALLTYPE QueryInterface(Q** pp) {
        return QueryInterface(uuidof<Q>(), (void **)pp);
    }

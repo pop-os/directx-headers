@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <atomic>
 #include <memory>
+#include <new>
 #include <climits>
 #include <cassert>
 
@@ -716,7 +717,8 @@ namespace WRL
                 ULONG ref = InternalRelease();
                 if (ref == 0)
                 {
-                    delete this;
+                    this->~RuntimeClassImpl();
+                    delete[] reinterpret_cast<char*>(this);
                 }
 
                 return ref;
@@ -776,9 +778,9 @@ namespace WRL
     template <typename T, typename ...TArgs>
     ComPtr<T> Make(TArgs&&... args)
     {
+        std::unique_ptr<char[]> buffer(new(std::nothrow) char[sizeof(T)]);
         ComPtr<T> object;
 
-        std::unique_ptr<unsigned char[]> buffer(new unsigned char[sizeof(T)]);
         if (buffer)
         {
             T* ptr = new (buffer.get())T(std::forward<TArgs>(args)...);

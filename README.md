@@ -4,6 +4,8 @@ This repository hosts the official Direct3D 12 headers. These headers are made a
 
 Additionally, this repository hosts several helpers for using these headers.
 
+Make sure that you visit the [DirectX Landing Page](https://devblogs.microsoft.com/directx/landing-page/) for more resources for DirectX developers.
+
 ## Directory Structure
 
 * `/`: Build files are available here for quick integration. CMake is provided, and can be referenced either via `subdirectory()` or after installation to a system location. Meson is also available for inclusion as a subproject/wrap.
@@ -42,7 +44,9 @@ There are various ways to consume the headers in this project:
 * FetchContent CMake (3.11+): Fetch this library using Git and easily add it to your project.
 * Meson subproject/wrap: Add this entire project as a subproject of your larger project, and use `subproject` or `dependency` to consume it.
 * Pkg-config: Use Meson to build this project, and the resulting installed package can be found via pkg-config.
-* vcpkg: A vcpkg port has [been added](https://github.com/microsoft/vcpkg/pull/15222).
+* vcpkg: A vcpkg port has [been added](https://github.com/microsoft/vcpkg/tree/master/ports/directx-headers).
+* NuGet: Download the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) from [NuGet.org](https://www.nuget.org/packages/Microsoft.Direct3D.D3D12)
+  * For more info about the Agility SDK, see the [getting started guide](https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/)
 
 Contributions for new mechanisms are welcome.
 
