@@ -1829,6 +1829,20 @@ struct CD3DX12_RESOURCE_DESC1 : public D3D12_RESOURCE_DESC1
     explicit CD3DX12_RESOURCE_DESC1( const D3D12_RESOURCE_DESC1& o ) noexcept :
         D3D12_RESOURCE_DESC1( o )
     {}
+    explicit CD3DX12_RESOURCE_DESC1( const D3D12_RESOURCE_DESC& o ) noexcept
+    {
+        Dimension = o.Dimension;
+        Alignment = o.Alignment;
+        Width = o.Width;
+        Height = o.Height;
+        DepthOrArraySize = o.DepthOrArraySize;
+        MipLevels = o.MipLevels;
+        Format = o.Format;
+        SampleDesc = o.SampleDesc;
+        Layout = o.Layout;
+        Flags = o.Flags;
+        SamplerFeedbackMipRegion = {};
+    }
     CD3DX12_RESOURCE_DESC1(
         D3D12_RESOURCE_DIMENSION dimension,
         UINT64 alignment,
@@ -2087,8 +2101,8 @@ inline UINT64 UpdateSubresources(
     {
         for (UINT i = 0; i < NumSubresources; ++i)
         {
-            CD3DX12_TEXTURE_COPY_LOCATION Dst(pDestinationResource, i + FirstSubresource);
-            CD3DX12_TEXTURE_COPY_LOCATION Src(pIntermediate, pLayouts[i]);
+            const CD3DX12_TEXTURE_COPY_LOCATION Dst(pDestinationResource, i + FirstSubresource);
+            const CD3DX12_TEXTURE_COPY_LOCATION Src(pIntermediate, pLayouts[i]);
             pCmdList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
         }
     }
@@ -2146,8 +2160,8 @@ inline UINT64 UpdateSubresources(
     {
         for (UINT i = 0; i < NumSubresources; ++i)
         {
-            CD3DX12_TEXTURE_COPY_LOCATION Dst(pDestinationResource, i + FirstSubresource);
-            CD3DX12_TEXTURE_COPY_LOCATION Src(pIntermediate, pLayouts[i]);
+            const CD3DX12_TEXTURE_COPY_LOCATION Dst(pDestinationResource, i + FirstSubresource);
+            const CD3DX12_TEXTURE_COPY_LOCATION Src(pIntermediate, pLayouts[i]);
             pCmdList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
         }
     }
@@ -2390,7 +2404,7 @@ inline HRESULT D3DX12SerializeVersionedRootSignature(
 
                     if (SUCCEEDED(hr))
                     {
-                        CD3DX12_ROOT_SIGNATURE_DESC desc_1_0(desc_1_1.NumParameters, pParameters_1_0, desc_1_1.NumStaticSamplers, desc_1_1.pStaticSamplers, desc_1_1.Flags);
+                        const CD3DX12_ROOT_SIGNATURE_DESC desc_1_0(desc_1_1.NumParameters, pParameters_1_0, desc_1_1.NumStaticSamplers, desc_1_1.pStaticSamplers, desc_1_1.Flags);
                         hr = D3D12SerializeRootSignature(&desc_1_0, D3D_ROOT_SIGNATURE_VERSION_1, ppBlob, ppErrorBlob);
                     }
 
@@ -2449,16 +2463,16 @@ template <typename InnerStructType, D3D12_PIPELINE_STATE_SUBOBJECT_TYPE Type, ty
 class alignas(void*) CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT
 {
 private:
-    D3D12_PIPELINE_STATE_SUBOBJECT_TYPE _Type;
-    InnerStructType _Inner;
+    D3D12_PIPELINE_STATE_SUBOBJECT_TYPE pssType;
+    InnerStructType pssInner;
 public:
-    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT() noexcept : _Type(Type), _Inner(DefaultArg()) {}
-    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT(InnerStructType const& i) noexcept : _Type(Type), _Inner(i) {}
-    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT& operator=(InnerStructType const& i) noexcept { _Type = Type; _Inner = i; return *this; }
-    operator InnerStructType const&() const noexcept { return _Inner; }
-    operator InnerStructType&() noexcept { return _Inner; }
-    InnerStructType* operator&() noexcept { return &_Inner; }
-    InnerStructType const* operator&() const noexcept { return &_Inner; }
+    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT() noexcept : pssType(Type), pssInner(DefaultArg()) {}
+    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT(InnerStructType const& i) noexcept : pssType(Type), pssInner(i) {}
+    CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT& operator=(InnerStructType const& i) noexcept { pssType = Type; pssInner = i; return *this; }
+    operator InnerStructType const&() const noexcept { return pssInner; }
+    operator InnerStructType&() noexcept { return pssInner; }
+    InnerStructType* operator&() noexcept { return &pssInner; }
+    InnerStructType const* operator&() const noexcept { return &pssInner; }
 };
 #pragma warning(pop)
 typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< D3D12_PIPELINE_STATE_FLAGS,         D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS>                             CD3DX12_PIPELINE_STATE_STREAM_FLAGS;
@@ -3279,9 +3293,9 @@ inline bool operator==( const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC &a, const D3D
 //
 //================================================================================================
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 #ifndef D3DX12_USE_ATL
 #include <wrl/client.h>
 #define D3DX12_COM_PTR Microsoft::WRL::ComPtr
@@ -4037,6 +4051,13 @@ private:
     D3D12_NODE_MASK m_Desc;
 };
 
+#endif // !D3DX12_NO_STATE_OBJECT_HELPERS
+
+
+//================================================================================================
+// D3DX12 Enhanced Barrier Helpers
+//================================================================================================
+
 class CD3DX12_BARRIER_SUBRESOURCE_RANGE : public D3D12_BARRIER_SUBRESOURCE_RANGE
 {
 public:
@@ -4053,7 +4074,7 @@ public:
         UINT FirstArraySlice,
         UINT NumArraySlices,
         UINT FirstPlane = 0,
-        UINT NumPlanes = UINT_MAX) noexcept :
+        UINT NumPlanes = 1) noexcept :
         D3D12_BARRIER_SUBRESOURCE_RANGE
         {
             FirstMipLevel,
@@ -4159,11 +4180,12 @@ public:
 };
 
 
-#endif // #ifndef D3DX12_NO_STATE_OBJECT_HELPERS
-
 #ifndef D3DX12_NO_CHECK_FEATURE_SUPPORT_CLASS
 
-//------------------------------------------------------------------------------------------------
+//================================================================================================
+// D3DX12 Check Feature Support
+//================================================================================================
+
 #include <vector>
 
 class CD3DX12FeatureSupport
@@ -4313,6 +4335,19 @@ public: // Function declaration
     // D3D12_OPTIONS11
     BOOL AtomicInt64OnDescriptorHeapResourceSupported() const noexcept;
 
+    // D3D12_OPTIONS12
+    D3D12_TRI_STATE MSPrimitivesPipelineStatisticIncludesCulledPrimitives() const noexcept;
+    BOOL EnhancedBarriersSupported() const noexcept;
+    BOOL RelaxedFormatCastingSupported() const noexcept;
+
+    // D3D12_OPTIONS13
+    BOOL UnrestrictedBufferTextureCopyPitchSupported() const noexcept;
+    BOOL UnrestrictedVertexElementAlignmentSupported() const noexcept;
+    BOOL InvertedViewportHeightFlipsYSupported() const noexcept;
+    BOOL InvertedViewportDepthFlipsZSupported() const noexcept;
+    BOOL TextureCopyBetweenDimensionsSupported() const noexcept;
+    BOOL AlphaBlendFactorSupported() const noexcept;
+
 private: // Private structs and helpers declaration
     struct ProtectedResourceSessionTypesLocal : D3D12_FEATURE_DATA_PROTECTED_RESOURCE_SESSION_TYPES
     {
@@ -4368,6 +4403,8 @@ private: // Member data
     D3D12_FEATURE_DATA_D3D12_OPTIONS9 m_dOptions9;
     D3D12_FEATURE_DATA_D3D12_OPTIONS10 m_dOptions10;
     D3D12_FEATURE_DATA_D3D12_OPTIONS11 m_dOptions11;
+    D3D12_FEATURE_DATA_D3D12_OPTIONS12 m_dOptions12;
+    D3D12_FEATURE_DATA_D3D12_OPTIONS13 m_dOptions13;
 };
 
 // Implementations for CD3DX12FeatureSupport functions
@@ -4428,6 +4465,8 @@ inline CD3DX12FeatureSupport::CD3DX12FeatureSupport() noexcept
 , m_dOptions9{}
 , m_dOptions10{}
 , m_dOptions11{}
+, m_dOptions12{}
+, m_dOptions13{}
 {}
 
 inline HRESULT CD3DX12FeatureSupport::Init(ID3D12Device* pDevice)
@@ -4566,6 +4605,23 @@ inline HRESULT CD3DX12FeatureSupport::Init(ID3D12Device* pDevice)
     if (FAILED(m_pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS11, &m_dOptions11, sizeof(m_dOptions11))))
     {
         m_dOptions11.AtomicInt64OnDescriptorHeapResourceSupported = false;
+    }
+
+    if (FAILED(m_pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &m_dOptions12, sizeof(m_dOptions12))))
+    {
+        m_dOptions12.MSPrimitivesPipelineStatisticIncludesCulledPrimitives = D3D12_TRI_STATE::D3D12_TRI_STATE_UNKNOWN;
+        m_dOptions12.EnhancedBarriersSupported = false;
+        m_dOptions12.RelaxedFormatCastingSupported = false;
+    }
+
+    if (FAILED(m_pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS13, &m_dOptions13, sizeof(m_dOptions13))))
+    {
+        m_dOptions13.UnrestrictedBufferTextureCopyPitchSupported = false;
+        m_dOptions13.UnrestrictedVertexElementAlignmentSupported = false;
+        m_dOptions13.InvertedViewportHeightFlipsYSupported = false;
+        m_dOptions13.InvertedViewportDepthFlipsZSupported = false;
+        m_dOptions13.TextureCopyBetweenDimensionsSupported = false;
+        m_dOptions13.AlphaBlendFactorSupported = false;
     }
 
     // Initialize per-node feature support data structures
@@ -4874,6 +4930,19 @@ FEATURE_SUPPORT_GET(BOOL, m_dOptions10, MeshShaderPerPrimitiveShadingRateSupport
 // 40: Options11
 FEATURE_SUPPORT_GET(BOOL, m_dOptions11, AtomicInt64OnDescriptorHeapResourceSupported);
 
+// 41: Options12
+FEATURE_SUPPORT_GET(D3D12_TRI_STATE, m_dOptions12, MSPrimitivesPipelineStatisticIncludesCulledPrimitives);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions12, EnhancedBarriersSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions12, RelaxedFormatCastingSupported);
+
+// 42: Options13
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, UnrestrictedBufferTextureCopyPitchSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, UnrestrictedVertexElementAlignmentSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, InvertedViewportHeightFlipsYSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, InvertedViewportDepthFlipsZSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, TextureCopyBetweenDimensionsSupported);
+FEATURE_SUPPORT_GET(BOOL, m_dOptions13, AlphaBlendFactorSupported);
+
 // Helper function to decide the highest shader model supported by the system
 // Stores the result in m_dShaderModel
 // Must be updated whenever a new shader model is added to the d3d12.h header
@@ -5021,7 +5090,7 @@ inline HRESULT CD3DX12FeatureSupport::QueryProtectedResourceSessionTypes(UINT No
 
 // end CD3DX12FeatureSupport
 
-#endif // #ifndef D3DX12_NO_CHECK_FEATURE_SUPPORT_CLASS
+#endif // !D3DX12_NO_CHECK_FEATURE_SUPPORT_CLASS
 
 #undef D3DX12_COM_PTR
 #undef D3DX12_COM_PTR_GET

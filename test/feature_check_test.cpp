@@ -3,6 +3,8 @@
 
 #ifndef _WIN32
 #include <wsl/winadapter.h>
+#elif defined(__MINGW32__)
+#include <unknwn.h>
 #endif
 
 #include <iostream>
@@ -94,14 +96,44 @@ std::cout << "Verification failed: " << #FeatureName << std::endl \
           << "New API: " << NewFeature << std::endl;
 
 
+using namespace Microsoft::WRL;
+
+// To get property value from adapter
+std::vector<char> get_adapter_property(ComPtr<IDXCoreAdapter> adapter, DXCoreAdapterProperty property)
+{
+    if (adapter->IsPropertySupported(property))
+    {
+        size_t len;
+        if(FAILED(adapter->GetPropertySize(property, &len)))
+        {
+            return {};
+        }
+        std::vector<char> buf(len);
+        if(FAILED(adapter->GetProperty(property, len, buf.data())))
+        {
+            return {};
+        }
+        return buf;
+    }
+    return {};
+}
+
+// To get driver description for display before test
+std::string get_driver_description(ComPtr<IDXCoreAdapter> adapter)
+{
+    auto rs = get_adapter_property(adapter, DXCoreAdapterProperty::DriverDescription);
+    std::string name(rs.data());
+    return name;
+}
+
 // -----------------------------------------------------------------------------------------------------------------
-// Main function
+// Run tests on a specific device which is created from the input adapter
 // -----------------------------------------------------------------------------------------------------------------
-int main()
+int run_per_adapter(IUnknown* adapter)
 {
     ID3D12Device *device = nullptr;
 
-    if (FAILED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device)))) 
+    if (FAILED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device)))) 
     {
         return -1;
     }
@@ -369,7 +401,7 @@ int main()
 
         D3D12_FEATURE_DATA_SHADER_CACHE Data;
         INITIALIZE_FEATURE_SUPPORT_DATA(SHADER_CACHE);
-        VERIFY_RENAMED_FEATURE_CHECK(ShaderCacheSupportFlags, SupportFlags, D3D12_SHADER_CACHE_FLAG_NONE);
+        VERIFY_RENAMED_FEATURE_CHECK(ShaderCacheSupportFlags, SupportFlags, D3D12_SHADER_CACHE_SUPPORT_NONE);
     }
 
     // 20: Command Queue Prioirity
@@ -619,6 +651,71 @@ int main()
         VERIFY_FEATURE_CHECK(AtomicInt64OnDescriptorHeapResourceSupported, false);
     }
 
+    // 41: Options12
+    {
+        D3D12_TRI_STATE MSPrimitivesPipelineStatisticIncludesCulledPrimitives = features.MSPrimitivesPipelineStatisticIncludesCulledPrimitives();
+        BOOL EnhancedBarriersSupported = features.EnhancedBarriersSupported();
+
+        D3D12_FEATURE_DATA_D3D12_OPTIONS12 Data;
+        INITIALIZE_FEATURE_SUPPORT_DATA(D3D12_OPTIONS12);
+        VERIFY_FEATURE_CHECK(MSPrimitivesPipelineStatisticIncludesCulledPrimitives, D3D12_TRI_STATE_UNKNOWN);
+        VERIFY_FEATURE_CHECK(EnhancedBarriersSupported, false);
+        VERIFY_FEATURE_CHECK(RelaxedFormatCastingSupported, false);
+    }
+
+    // 41: Options13
+    {
+        D3D12_FEATURE_DATA_D3D12_OPTIONS13 Data;
+        INITIALIZE_FEATURE_SUPPORT_DATA(D3D12_OPTIONS13);
+        VERIFY_FEATURE_CHECK(UnrestrictedBufferTextureCopyPitchSupported, false);
+        VERIFY_FEATURE_CHECK(UnrestrictedVertexElementAlignmentSupported, false);
+        VERIFY_FEATURE_CHECK(InvertedViewportHeightFlipsYSupported, false);
+        VERIFY_FEATURE_CHECK(InvertedViewportDepthFlipsZSupported, false);
+        VERIFY_FEATURE_CHECK(TextureCopyBetweenDimensionsSupported, false);
+        VERIFY_FEATURE_CHECK(AlphaBlendFactorSupported, false);
+    }
+
     std::cout << "Test completed with no errors." << std::endl;
+    return 0;
+}
+
+int main()
+{
+    ComPtr<IDXCoreAdapterFactory> adapter_factory;
+    ComPtr<IDXCoreAdapterList> adapter_list;
+    GUID dx_must_attr[1]{ DXCORE_ADAPTER_ATTRIBUTE_D3D12_CORE_COMPUTE };
+
+    if(FAILED(DXCoreCreateAdapterFactory(IID_PPV_ARGS(&adapter_factory))))
+    {
+        return -1;
+    }
+
+    if(FAILED(adapter_factory->CreateAdapterList(_countof(dx_must_attr), dx_must_attr, IID_PPV_ARGS(&adapter_list))))
+    {
+        return -1;
+    }
+
+    // Test all adapters
+    for (uint32_t i = 0; i < adapter_list->GetAdapterCount(); i++)
+    {
+        ComPtr<IDXCoreAdapter> adapter;
+        if(FAILED(adapter_list->GetAdapter(i, IID_PPV_ARGS(&adapter))))
+        {
+            std::cout << "Cannot get number " << i << " adapter." << std::endl;
+            continue;
+        }
+
+        std::string driver_desc_str = get_driver_description(adapter);
+        if(driver_desc_str.empty())
+        {
+            std::cout << "Cannot get number " << i << " adapter's driver description." << std::endl;
+        }
+        std::cout << "Test on device driver: " << driver_desc_str << std::endl;
+
+        if(FAILED(run_per_adapter(adapter.Get())))
+        {
+            std::cout << "Some tests failed with error on number " << i << " adapter." << std::endl;
+        }
+    }
     return 0;
 }

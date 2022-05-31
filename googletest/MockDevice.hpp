@@ -4,6 +4,10 @@
 #define DIRECTX_HEADERS_MOCK_DEVICE_HPP
 #include <unordered_map>
 
+#ifndef __RPC_FAR
+#define __RPC_FAR
+#endif
+
 #include <directx/d3d12.h>
 #include <directx/dxcore.h>
 #include <directx/d3dx12.h>
@@ -25,6 +29,8 @@ public: // Constructors and custom functions
     {
 
     }
+
+    virtual ~MockDevice() = default;
 
     void SetNodeCount(UINT NewCount) 
     {
@@ -502,7 +508,7 @@ public: // IUnknown
             default:
                 return E_INVALIDARG;
             }
-            pRootSig->HighestVersion = min(pRootSig->HighestVersion, m_RootSignatureHighestVersion); 
+            pRootSig->HighestVersion = static_cast<D3D_ROOT_SIGNATURE_VERSION>(std::min<int>(pRootSig->HighestVersion, m_RootSignatureHighestVersion));
         } return S_OK;
         
 
@@ -699,7 +705,7 @@ public: // IUnknown
                 default:
                     return E_INVALIDARG;
                 }
-                pSM->HighestShaderModel = min(pSM->HighestShaderModel,m_HighestSupportedShaderModel);
+                pSM->HighestShaderModel = static_cast<D3D_SHADER_MODEL>(std::min<int>(pSM->HighestShaderModel,m_HighestSupportedShaderModel));
             } return S_OK;
         case D3D12_FEATURE_SHADER_CACHE:
             {
@@ -1043,7 +1049,21 @@ public: // IUnknown
 
             pD3D12Options11->AtomicInt64OnDescriptorHeapResourceSupported = m_AtomicInt64OnDescriptorHeapResourceSupported;
         } return S_OK;
-        
+        case D3D12_FEATURE_D3D12_OPTIONS12:
+        {
+            if (!m_Options12Available)
+            {
+                return E_INVALIDARG;
+            }
+			D3D12_FEATURE_DATA_D3D12_OPTIONS12* pD3D12Options12 = static_cast<D3D12_FEATURE_DATA_D3D12_OPTIONS12*>(pFeatureSupportData);
+			if (FeatureSupportDataSize != sizeof(*pD3D12Options12))
+			{
+				return E_INVALIDARG;
+			}
+
+            pD3D12Options12->MSPrimitivesPipelineStatisticIncludesCulledPrimitives = m_MSPrimitivesPipelineStatisticIncludesCulledPrimitives;
+            pD3D12Options12->EnhancedBarriersSupported = m_EnhancedBarriersSupported;
+        } return S_OK;
 
         default:
             return E_INVALIDARG;
@@ -1228,6 +1248,11 @@ public: // For simplicity, allow tests to set the internal state values for this
     // 40: Options11
     bool m_Options11Available = true;
     bool m_AtomicInt64OnDescriptorHeapResourceSupported = false;
+
+    // 41: Options12
+    bool m_Options12Available = true;
+    D3D12_TRI_STATE m_MSPrimitivesPipelineStatisticIncludesCulledPrimitives = D3D12_TRI_STATE_UNKNOWN;
+    bool m_EnhancedBarriersSupported = false;
 };
 
 #endif
