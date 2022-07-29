@@ -1,3 +1,10 @@
+directx-headers (1.606.3+r1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * watch: Updated.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 29 Jul 2022 12:16:24 +0300
+
 directx-headers (1.602.0+r1-1) unstable; urgency=medium
 
   * New upstream release. (LP: #1975624)

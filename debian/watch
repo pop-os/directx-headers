@@ -1,5 +1,5 @@
 version=4
 
-opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%directx-headers-$1.tar.gz%" \
+opts="uversionmangle=s/-r/+r/, filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%directx-headers-$1.tar.gz%" \
    https://github.com/microsoft/DirectX-Headers/tags \
-   (?:.*?/)?v?(\d[\d.]*)\.tar\.gz
+   (?:.*?/)?v?@ANY_VERSION@@ARCHIVE_EXT@
