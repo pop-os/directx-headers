@@ -1,3 +1,9 @@
+directx-headers (1.610.2-2) unstable; urgency=medium
+
+  * Upload to sid.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 19 Jun 2023 15:01:35 +0300
+
 directx-headers (1.610.2-1) experimental; urgency=medium
 
   [ Debian Janitor ]
