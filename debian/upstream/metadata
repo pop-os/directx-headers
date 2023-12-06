@@ -1,4 +1,6 @@
 ---
 Bug-Database: https://github.com/microsoft/DirectX-Headers/issues
 Bug-Submit: https://github.com/microsoft/DirectX-Headers/issues/new
+Repository: https://github.com/microsoft/DirectX-Headers.git
 Repository-Browse: https://github.com/microsoft/DirectX-Headers
+Security-Contact: https://github.com/microsoft/DirectX-Headers/tree/HEAD/SECURITY.md

@@ -1,8 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-project('DirectX-Headers', 'cpp', version : '1.610.0',
+project('DirectX-Headers', 'cpp', version : '1.611.0',
         default_options : ['cpp_std=c++14'])
+
+cpp = meson.get_compiler('cpp')
+compiler_id = cpp.get_id()
+#d3d12_lib is not available in linux
+d3d12_lib = cpp.find_library('d3d12', required : host_machine.system() == 'windows')
+#dxcore is not available in Mingw-w64
+dxcore_lib = cpp.find_library('dxcore', required: compiler_id == 'msvc')
+test_compile_opts = []
+if host_machine.system() == 'windows'
+    test_compile_opts = ['-DUNICODE', '-D_WIN32_WINNT=0x0A00']
+endif
+if (compiler_id == 'gcc') or (compiler_id == 'clang')
+    test_compile_opts += ['-Wno-unused-variable']
+endif
 
 inc_dirs = [include_directories('include', is_system : true)]
 install_inc_subdirs = ['']
@@ -36,12 +50,14 @@ if meson.version().version_compare('>=0.54.0')
 endif
 
 if not meson.is_subproject() and get_option('build-test')
+    subdir('googletest')
     subdir('test')
 endif
 
 pkg = import('pkgconfig')
 pkg.generate(name : 'DirectX-Headers',
              description : 'Headers for using D3D12',
+             url: 'https://github.com/microsoft/DirectX-Headers',
              libraries : [format_properties_lib, guids_lib],
              version : meson.project_version(),
              subdirs : install_inc_subdirs)

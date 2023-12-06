@@ -1,3 +1,14 @@
+directx-headers (1.611.0-1) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Set upstream metadata fields: Repository, Security-Contact.
+  * Update standards version to 4.6.2, no changes needed.
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 06 Dec 2023 14:55:24 +0200
+
 directx-headers (1.610.2-2) unstable; urgency=medium
 
   * Upload to sid.
