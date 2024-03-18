@@ -1459,6 +1459,11 @@ typedef enum D3D12_MESSAGE_ID {
     D3D12_MESSAGE_ID_RECREATEAT_INVALID_TARGET = 1385,
     D3D12_MESSAGE_ID_RECREATEAT_INSUFFICIENT_SUPPORT = 1386,
 
+    D3D12_MESSAGE_ID_GPU_BASED_VALIDATION_STRUCTURED_BUFFER_STRIDE_MISMATCH = 1387,
+
+    D3D12_MESSAGE_ID_DISPATCH_GRAPH_INVALID = 1388,
+
+    D3D12_MESSAGE_ID_CREATE_STATE_OBJECT_WARNING = 1414,
     D3D12_MESSAGE_ID_D3D12_MESSAGES_END  
 } D3D12_MESSAGE_ID;
 
@@ -1773,7 +1778,7 @@ interface ID3D12InfoQueue1
     HRESULT RegisterMessageCallback(
         [annotation("_In_")]    D3D12MessageFunc CallbackFunc, 
         [annotation("_In_")]    D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags,
-        [annotation("_In_")]    void* pContext, 
+        [annotation("_Inout_")] void* pContext, 
         [annotation("_Inout_")] DWORD *pCallbackCookie);
 
     HRESULT UnregisterMessageCallback(
