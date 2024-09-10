@@ -1,3 +1,9 @@
+directx-headers (1.614.1-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 10 Sep 2024 22:41:57 +0300
+
 directx-headers (1.613.0-1) unstable; urgency=medium
 
   * New upstream release.
